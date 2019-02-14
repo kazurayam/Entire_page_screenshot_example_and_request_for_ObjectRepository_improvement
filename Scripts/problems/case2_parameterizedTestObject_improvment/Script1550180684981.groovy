@@ -83,4 +83,3 @@ CustomKeywords.'com.kazurayam.ksbackyard.ScreenshotDriver.saveEntirePageImage'(
 	options)
 
 WebUI.closeBrowser()
-

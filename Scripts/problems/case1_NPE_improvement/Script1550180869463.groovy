@@ -1,4 +1,3 @@
-
 import static com.kms.katalon.core.testobject.ObjectRepository.findTestObject
 
 import java.nio.file.Path
@@ -27,7 +26,7 @@ import internal.GlobalVariable as GlobalVariable
 /**
  * modify com.kms.katalon.core.testobject.ObjectRepository
  * using Groovy MetaProgramming technique.
- * 
+ *
  * the source code is here: https://github.com/katalon-studio/katalon-studio-testing-framework/blob/master/Include/scripts/groovy/com/kms/katalon/core/testobject/ObjectRepository.java
  */
 def hackObjectRepository() {
