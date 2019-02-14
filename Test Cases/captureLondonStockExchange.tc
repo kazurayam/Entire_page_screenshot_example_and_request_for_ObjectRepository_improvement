@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <TestCaseEntity>
    <description></description>
-   <name>captureTopPage</name>
+   <name>captureLondonStockExchange</name>
    <tag></tag>
    <comment></comment>
-   <testCaseGuid>a0dd8950-47b2-4c80-b9c6-c1ab09f23f58</testCaseGuid>
+   <testCaseGuid>c6b5579d-1429-4cf5-b3cb-0b5f37a1f301</testCaseGuid>
 </TestCaseEntity>

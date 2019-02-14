@@ -17,10 +17,10 @@
       <testCaseId>Test Cases/cleanMaterials</testCaseId>
    </testCaseLink>
    <testCaseLink>
-      <guid>a59402e4-85df-44be-9384-4de2d30399d8</guid>
+      <guid>43bee5fe-3c51-430e-93fd-4a367e3b41c6</guid>
       <isReuseDriver>false</isReuseDriver>
       <isRun>true</isRun>
-      <testCaseId>Test Cases/captureTopPage</testCaseId>
+      <testCaseId>Test Cases/captureLondonStockExchange</testCaseId>
    </testCaseLink>
    <testCaseLink>
       <guid>cb488890-f5df-4e48-abd1-9db2ee555ce2</guid>
