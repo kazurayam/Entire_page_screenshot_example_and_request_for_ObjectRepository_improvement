@@ -1,3 +1,4 @@
+
 import static com.kms.katalon.core.testobject.ObjectRepository.findTestObject
 
 import java.nio.file.Path
@@ -15,9 +16,16 @@ import com.kms.katalon.core.webui.keyword.WebUiBuiltInKeywords as WebUI
 import internal.GlobalVariable as GlobalVariable
 
 /**
- * captureLondonStockExchange
- *
+ * Test Cases/problems/case1_proposal_for_improvement
  */
+
+/**
+ * modify com.kms.katalon.core.testobject.ObjectRepository class 
+ * using Groovy MetaProgramming technique.
+ */
+def hackObjectRepository() {
+}
+hackObjectRepository()
 
 URL url = new URL('https://www.londonstockexchange.com/home/homepage.htm')
 
@@ -51,6 +59,10 @@ Options options = new ScreenshotDriver.Options.Builder().
 						addIgnoredElement(findTestObject('Object Repository/Page_LSE_home/slideshow-wrapper-news')).
 						addIgnoredElement(findTestObject('Object Repository/Page_LSE_home/tab0_tr1_td3')).
 						addIgnoredElement(findTestObject('Object Repository/Page_LSE_home/tab0_tr1_td5')).
+						
+						addIgnoredElement(findTestObject('Object Repository/Page_LSE_home/tab0_tr2_td3')).
+						addIgnoredElement(findTestObject('Object Repository/Page_LSE_home/tab0_tr2_td5')).   // ERROR
+						
 						build()
 CustomKeywords.'com.kazurayam.ksbackyard.ScreenshotDriver.saveEntirePageImage'(
 	fileFnamedByURL.toFile(),

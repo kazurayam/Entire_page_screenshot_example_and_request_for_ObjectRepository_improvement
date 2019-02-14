@@ -1,3 +1,4 @@
+
 import static com.kms.katalon.core.testobject.ObjectRepository.findTestObject
 
 import java.nio.file.Path
@@ -15,7 +16,7 @@ import com.kms.katalon.core.webui.keyword.WebUiBuiltInKeywords as WebUI
 import internal.GlobalVariable as GlobalVariable
 
 /**
- * captureLondonStockExchange
+ * problems/case1_NullPointerException_reproduced
  *
  */
 
@@ -51,6 +52,10 @@ Options options = new ScreenshotDriver.Options.Builder().
 						addIgnoredElement(findTestObject('Object Repository/Page_LSE_home/slideshow-wrapper-news')).
 						addIgnoredElement(findTestObject('Object Repository/Page_LSE_home/tab0_tr1_td3')).
 						addIgnoredElement(findTestObject('Object Repository/Page_LSE_home/tab0_tr1_td5')).
+						
+						addIgnoredElement(findTestObject('Object Repository/Page_LSE_home/tab0_tr2_td3')).
+						addIgnoredElement(findTestObject('Object Repository/Page_LSE_home/tab0_tr2_td5')).   // ERROR
+						
 						build()
 CustomKeywords.'com.kazurayam.ksbackyard.ScreenshotDriver.saveEntirePageImage'(
 	fileFnamedByURL.toFile(),

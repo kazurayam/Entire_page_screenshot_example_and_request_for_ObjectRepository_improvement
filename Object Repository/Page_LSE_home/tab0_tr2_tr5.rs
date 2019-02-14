@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<WebElementEntity>
+   <description></description>
+   <name>tab0_tr2_tr5</name>
+   <tag></tag>
+   <elementGuidId>f1d25d08-92f2-49be-85e2-f74192e8bbb6</elementGuidId>
+   <selectorCollection>
+      <entry>
+         <key>BASIC</key>
+         <value>//div[@id=&quot;tab0&quot;]/div/table/tbody/tr[1]/td[5]</value>
+      </entry>
+   </selectorCollection>
+   <selectorMethod>BASIC</selectorMethod>
+   <useRalativeImagePath>false</useRalativeImagePath>
+   <webElementProperties>
+      <isSelected>true</isSelected>
+      <matchCondition>equals</matchCondition>
+      <name>xpath</name>
+      <type>Main</type>
+      <value>//div[@id=&quot;tab0&quot;]/div/table/tbody/tr[1]/td[5]</value>
+   </webElementProperties>
+</WebElementEntity>
