@@ -2,7 +2,11 @@
 import static com.kms.katalon.core.testobject.ObjectRepository.findTestObject
 
 import java.nio.file.Path
+import java.util.Map;
+import java.util.Map.Entry;
 
+import org.apache.commons.lang.text.StrSubstitutor;
+import org.dom4j.Element;
 import org.openqa.selenium.JavascriptExecutor
 
 import com.kazurayam.ksbackyard.ScreenshotDriver
@@ -10,6 +14,12 @@ import com.kazurayam.ksbackyard.ScreenshotDriver.Options
 import com.kazurayam.ksbackyard.ScreenshotDriver.Options.Builder
 import com.kazurayam.materials.MaterialRepository
 import com.kms.katalon.core.model.FailureHandling as FailureHandling
+import com.kms.katalon.core.testobject.ConditionType
+import com.kms.katalon.core.testobject.ObjectRepository
+import com.kms.katalon.core.testobject.SelectorMethod
+import com.kms.katalon.core.testobject.TestObject
+import com.kms.katalon.core.testobject.TestObjectProperty
+import com.kms.katalon.core.testobject.TestObjectXpath
 import com.kms.katalon.core.webui.driver.DriverFactory
 import com.kms.katalon.core.webui.keyword.WebUiBuiltInKeywords as WebUI
 
@@ -26,6 +36,109 @@ import internal.GlobalVariable as GlobalVariable
  * using Groovy MetaProgramming technique.
  */
 def hackObjectRepository() {
+	ObjectRepository.metaClass.static.findWebUIObject = {String testObjectId, Element element, Map<String, Object> variables ->
+		TestObject testObject = new TestObject(testObjectId);
+
+		// For image
+		Element imagePathElement = element.element("imagePath");
+		if (imagePathElement != null) {
+			String imagePath = imagePathElement.getText();
+			testObject.setImagePath(imagePath);
+		}
+
+		Element relativeImagePathElement = element.element("useRalativeImagePath");
+		if (relativeImagePathElement != null) {
+			String useRelavitePathString = relativeImagePathElement.getText();
+			testObject.setUseRelativeImagePath(Boolean.parseBoolean(useRelavitePathString));
+		}
+
+		Element dfSelectorMethodElement = element.element(PROPERTY_SELECTOR_METHOD);
+		if (dfSelectorMethodElement != null) {
+			testObject.setSelectorMethod(SelectorMethod.valueOf(dfSelectorMethodElement.getText()));
+		}
+
+		Element propertySelectorCollection = element.element(PROPERTY_SELECTOR_COLLECTION);
+		if (propertySelectorCollection != null) {
+			List<?> selectorEntry = propertySelectorCollection.elements(PROPERTY_ENTRY);
+			if (selectorEntry != null) {
+				for (Object entry: selectorEntry) {
+					Element selectorMethodElement = ((Element) entry);
+					SelectorMethod entryKey = SelectorMethod.valueOf(selectorMethodElement.elementText(PROPERTY_KEY));
+					String entryValue = selectorMethodElement.elementText(PROPERTY_VALUE);
+					testObject.setSelectorValue(entryKey, entryValue);
+				}
+			}
+		}
+
+		for (Object propertyElementObject : element.elements(WEB_ELEMENT_PROPERTY_NODE_NAME)) {
+			TestObjectProperty objectProperty = new TestObjectProperty();
+			Element propertyElement = (Element) propertyElementObject;
+
+			String propertyName = StringEscapeUtils.unescapeXml(propertyElement.elementText(PROPERTY_NAME));
+			ConditionType propertyCondition = ConditionType
+					.fromValue(StringEscapeUtils.unescapeXml(propertyElement.elementText(PROPERTY_CONDITION)));
+			String propertyValue = StringEscapeUtils.unescapeXml(propertyElement.elementText(PROPERTY_VALUE));
+			boolean isPropertySelected = Boolean
+					.valueOf(StringEscapeUtils.unescapeXml(propertyElement.elementText(PROPERTY_IS_SELECTED)));
+
+			objectProperty.setName(propertyName);
+			objectProperty.setCondition(propertyCondition);
+			objectProperty.setValue(propertyValue);
+			objectProperty.setActive(isPropertySelected);
+
+			// Check if this element is inside a frame
+			if (Arrays.asList(PARENT_FRAME_ATTRS).contains(propertyName) && isPropertySelected) {
+				TestObject parentObject = findTestObject(propertyValue);
+				testObject.setParentObject(parentObject);
+			} else if (PARENT_SHADOW_ROOT_ATTRIBUTE.equals(propertyName)) {
+				testObject.setParentObjectShadowRoot(true);
+			} else {
+				testObject.addProperty(objectProperty);
+			}
+		}
+		
+		for (Object xpathElementObject : element.elements(WEB_ELEMENT_XPATH_NODE_NAME)) {
+			TestObjectXpath objectXpath = new TestObjectXpath();
+			Element xpathElement = (Element) xpathElementObject;
+
+			String propertyName = StringEscapeUtils.unescapeXml(xpathElement.elementText(PROPERTY_NAME));
+			ConditionType propertyCondition = ConditionType
+					.fromValue(StringEscapeUtils.unescapeXml(xpathElement.elementText(PROPERTY_CONDITION)));
+			String propertyValue = StringEscapeUtils.unescapeXml(xpathElement.elementText(PROPERTY_VALUE));
+			boolean isPropertySelected = Boolean
+					.valueOf(StringEscapeUtils.unescapeXml(xpathElement.elementText(PROPERTY_IS_SELECTED)));
+
+			objectXpath.setName(propertyName);
+			objectXpath.setCondition(propertyCondition);
+			objectXpath.setValue(propertyValue);
+			objectXpath.setActive(isPropertySelected);
+
+			// Check if this element is inside a frame
+			if (Arrays.asList(PARENT_FRAME_ATTRS).contains(propertyName) && isPropertySelected) {
+				TestObject parentObject = findTestObject(propertyValue);
+				testObject.setParentObject(parentObject);
+			} else if (PARENT_SHADOW_ROOT_ATTRIBUTE.equals(propertyName)) {
+				testObject.setParentObjectShadowRoot(true);
+			} else {
+				testObject.addXpath(objectXpath);
+			}
+		}
+
+		if (testObject == null || variables == null || variables.isEmpty()) {
+			return testObject;
+		}
+		Map<String, Object> variablesStringMap = new HashMap<String, Object>();
+		for (Entry<String, Object> entry : variables.entrySet()) {
+			variablesStringMap.put(String.valueOf(entry.getKey()), entry.getValue());
+		}
+
+		StrSubstitutor strSubtitutor = new StrSubstitutor(variablesStringMap);
+		for (TestObjectProperty objectProperty : testObject.getProperties()) {
+			objectProperty.setValue(strSubtitutor.replace(objectProperty.getValue()));
+		}
+
+		return testObject;
+	}
 }
 hackObjectRepository()
 
