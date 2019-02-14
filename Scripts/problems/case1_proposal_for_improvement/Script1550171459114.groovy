@@ -2,6 +2,7 @@
 import static com.kms.katalon.core.testobject.ObjectRepository.findTestObject
 
 import java.nio.file.Path
+import java.text.MessageFormat
 
 import org.openqa.selenium.JavascriptExecutor
 
@@ -9,7 +10,11 @@ import com.kazurayam.ksbackyard.ScreenshotDriver
 import com.kazurayam.ksbackyard.ScreenshotDriver.Options
 import com.kazurayam.ksbackyard.ScreenshotDriver.Options.Builder
 import com.kazurayam.materials.MaterialRepository
+import com.kms.katalon.core.configuration.RunConfiguration
+import com.kms.katalon.core.constants.StringConstants
 import com.kms.katalon.core.model.FailureHandling as FailureHandling
+import com.kms.katalon.core.testobject.ObjectRepository
+import com.kms.katalon.core.testobject.TestObject
 import com.kms.katalon.core.webui.driver.DriverFactory
 import com.kms.katalon.core.webui.keyword.WebUiBuiltInKeywords as WebUI
 
@@ -20,10 +25,34 @@ import internal.GlobalVariable as GlobalVariable
  */
 
 /**
- * modify com.kms.katalon.core.testobject.ObjectRepository class 
+ * modify com.kms.katalon.core.testobject.ObjectRepository
  * using Groovy MetaProgramming technique.
+ * 
+ * the source code is here: https://github.com/katalon-studio/katalon-studio-testing-framework/blob/master/Include/scripts/groovy/com/kms/katalon/core/testobject/ObjectRepository.java
  */
 def hackObjectRepository() {
+	ObjectRepository.metaClass.'static'.findTestObject = { String testObjectRelativeId, Map<String, Object> variables ->
+		println ">>> ObjectRepository#findTestObject(" + testObjectRelativeId + ") was called"
+		if (testObjectRelativeId == null) {
+			logger.logWarning(StringConstants.TO_LOG_WARNING_TEST_OBJ_NULL);
+			return null;
+		}
+		String testObjectId = getTestObjectId(testObjectRelativeId);
+		logger.logDebug(MessageFormat.format(StringConstants.TO_LOG_INFO_FINDING_TEST_OBJ_W_ID, testObjectId));
+		// Read test objects cached in temporary in record session.
+		Map<String, TestObject> testObjectsCached = getCapturedTestObjects();
+		if (testObjectRelativeId != null && testObjectsCached.containsKey(testObjectRelativeId)) {
+			return testObjectsCached.get(testObjectRelativeId);
+		}
+		File objectFile = new File(RunConfiguration.getProjectDir(), testObjectId + WEBELEMENT_FILE_EXTENSION);
+		if (!objectFile.exists()) {
+			//logger.logWarning(
+			//		MessageFormat.format(StringConstants.TO_LOG_WARNING_TEST_OBJ_DOES_NOT_EXIST, testObjectId));
+			//return null;
+			throw new FileNotFoundException(objectFile.toString() + " is not found")
+		}
+		return readTestObjectFile(testObjectId, objectFile, RunConfiguration.getProjectDir(), variables);
+	}
 }
 hackObjectRepository()
 
