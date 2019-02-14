@@ -42,15 +42,20 @@ WebUI.verifyElementPresent(
 	findTestObject('Object Repository/Page_LSE_home/tab0_tr1_td3'),
 	15, FailureHandling.CONTINUE_ON_FAILURE)
 
-// Take full page screenshot of NASDAQ page,
+// Take full page screenshot of the Stock Exchange home page,
 // save it into a PNG file in the Materials directory
 MaterialRepository mr = (MaterialRepository)GlobalVariable.MATERIAL_REPOSITORY
 Path fileFnamedByURL = mr.resolveScreenshotPath(GlobalVariable.CURRENT_TESTCASE_ID, url)
 Options options = new ScreenshotDriver.Options.Builder().
 						timeout(300).
+						addIgnoredElement(findTestObject('Object Repository/Page_LSE_home/slideshow-wrapper-news')).
+						addIgnoredElement(findTestObject('Object Repository/Page_LSE_home/tab0_tr1_td3')).
+						addIgnoredElement(findTestObject('Object Repository/Page_LSE_home/tab0_tr1_td5')).
 						build()
 CustomKeywords.'com.kazurayam.ksbackyard.ScreenshotDriver.saveEntirePageImage'(
 	fileFnamedByURL.toFile(),
 	options)
 
 WebUI.closeBrowser()
+
+WebUI.comment("Please find ${mr.getBaseDir().resolve('index.html')} for output")
