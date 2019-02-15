@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <TestCaseEntity>
    <description></description>
-   <name>case2_parameterizedTestObject_improvment</name>
+   <name>case2_parameterizedTO_improvment</name>
    <tag></tag>
    <comment></comment>
    <testCaseGuid>b13d7725-c054-4281-9c41-5b674587d66a</testCaseGuid>
