@@ -10,7 +10,7 @@ In this project I will report a small problem in the   [com.kms.katalon.core.tes
 
 Before talking about problems, I will give you a successful demo of taking screenshot of a web page. You can try the demo.
 
-### How to around the demonstration
+### How to see the demo
 
 1. Download the zip of this project from [Releases](https://github.com/kazurayam/Entire_page_screenshot_example_and_request_for_ObjectRepository_improvement/releases) page. Unzip it. Open it with your local Katalon Studio.
 2. Open the test suite `Test Suites/Execute`
@@ -38,6 +38,149 @@ This demo has a few notable points.
 ### Problem
 
 Please open [Test Cases/problems/case2_parameterizedTO_reproduced](Scripts/problems/case2_parameterizedTO_reproduced/Script1550193830805.groovy) and execute it. This script tries to take screenshot of [London Stock Exchange: Homepage](https://www.londonstockexchange.com/home/homepage.htm), but will fails. In the Console, you will see the following error message:
+
 ```
 2019-02-15 14:08:33.639 ERROR k.k.c.m.CustomKeywordDelegatingMetaClass -
-    
+    X Given xpath expression
+    "//div[@id="tab0"]/div/table/tbody/tr[${Y}]/td[${X}]"
+    is invalid: SyntaxError: The expression is not a legal expression.
+```
+
+The error is occuring at the following line :
+```
+addIgnoredElement(findTestObject('Page_LSE_home/tab0_trY_tdX',
+                                 ['Y':1, 'X':3])).
+
+```
+
+In [Test Cases/problems/case2_parameterizedTO_reproduced](Scripts/problems/case2_parameterizedTO_reproduced/Script1550193830805.groovy) has following code:
+```
+Options options = new ScreenshotDriver.Options.Builder().
+        addIgnoredElement(findTestObject('Page_LSE_home/tab0_trY_tdX', ['Y':1, 'X':3])).
+```
+
+Please remark that here I use the technique of ["Parametarize Test Object Properties"](https://docs.katalon.com/katalon-studio/docs/parameterize-webmobile-test-object-properties.html). `ScreenshotDriver`, `Options`, `Builder` --- these classes are my own custom Groovy classes. My class is throwing a error.
+
+Why it fails?
+
+### My study
+
+[Test Cases/problems/case2_parameterizedTO_reproduced](Scripts/problems/case2_parameterizedTO_reproduced/Script1550193830805.groovy) has another portion of code:
+```
+// let's see what is retured by the ObjectRepository#findTestObject() call
+println "findTestObject('Page_LSE_home/tab0_trY_trx',['Y':1,'X':3]'):\n" +
+	JsonOutput.prettyPrint(JsonOutput.toJson(
+		findTestObject('Page_LSE_home/tab0_trY_tdX', ['Y':1, 'X':3])
+	)
+)
+```
+
+When executed, this code emits the following output:
+```
+findTestObject('Page_LSE_home/tab0_trY_trx',['Y':1,'X':3]'):
+{
+    "objectId": "Object Repository/Page_LSE_home/tab0_trY_tdX",
+    "parentObjectShadowRoot": false,
+    "properties": [
+        {
+            "active": true,
+            "value": "//div[@id=\"tab0\"]/div/table/tbody/tr[1]/td[3]",
+            "condition": "EQUALS",
+            "name": "xpath"
+        },
+        {
+            "active": false,
+            "value": "foo",
+            "condition": "EQUALS",
+            "name": "name"
+        },
+        {
+            "active": true,
+            "value": "td",
+            "condition": "EQUALS",
+            "name": "tag"
+        }
+    ],
+    "imagePath": null,
+    "selectorMethod": "BASIC",
+    "selectorCollection": {
+        "BASIC": "//div[@id=\"tab0\"]/div/table/tbody/tr[${Y}]/td[${X}]"
+    },
+    "useRelativeImagePath": false,
+    "parentObject": null,
+    "xpaths": [
+
+    ],
+    "activeProperties": [
+        {
+            "active": true,
+            "value": "//div[@id=\"tab0\"]/div/table/tbody/tr[1]/td[3]",
+            "condition": "EQUALS",
+            "name": "xpath"
+        },
+        {
+            "active": true,
+            "value": "td",
+            "condition": "EQUALS",
+            "name": "tag"
+        }
+    ],
+    "activeXpaths": [
+
+    ]
+}
+```
+
+The following portion is significant for me.
+```
+"selectorCollection": {
+    "BASIC": "//div[@id=\"tab0\"]/div/table/tbody/tr[${Y}]/td[${X}]"
+},
+```
+In the Value of SelectorCollection, I expected the placeholders (`${Y}`, `${X}`) to be interpolated to row number `1` and column number `3`. But this does not take place.
+
+My custom code ([TestObjectSupport](Keywords/com/kazurayam/ksbackyard/TestObjectSupport.groovy) class toBy() method) refers to the SelectorCollection of TestObject class. It expects a valid XPath expression is returned. It turns the XPath to an instance of Selenium `By` object.
+
+Unfortunately the current TestObject returned by ObjectRepository#findTestObject() contains a Selector with placeholders (`${Y}`, `${X}`) retained. This causes the above mentioned error.
+
+### Wondered ...
+
+In the pretty-printed string of TestObject instance, you can find well-processed XPath expressions (`//div[@id=\"tab0\"]/div/table/tbody/tr[1]/td[3]`) in other properties. Only the Selector Colletion retains the placeholder string (`${Y}`, `${X}`). Whey? Is there any reason?
+
+I wondered for a few days. And now I suppose, there is no specific reason. Possibly the Selector Collection in a TestObject object is NOT used by the Katalon Studio itself. It is not an important property. Therefore the Katalon programmer did not care about it.
+
+### My workaround
+
+I have made a test case to demonstrate how to fix this problem.
+
+Please open [Test Cases/problems/case2_parameterizedTO_improvement](Scripts/problems/case2_parameterizedTO_improvment/Script1550193820302.groovy) and execute it. It should run successfully. It creates a screenshot where Stock Index FT-100 and FT-250 are painted with grey rectangles.
+![how_is_it_improved](docs/images/how_is_it_improved.png)
+
+In the execution log, you will find the TestObject has Selector Collection value where placeholders are interpolated with integer values.
+```
+"selectorCollection": {
+    "BASIC": "//div[@id=\"tab0\"]/div/table/tbody/tr[1]/td[3]"
+},
+```
+
+In the [Test Cases/problems/case2_parameterizedTO_improvement](Scripts/problems/case2_parameterizedTO_improvment/Script1550193820302.groovy) code, I employed Groovy's [MetaProgramming](http://groovy-lang.org/metaprogramming.html#metaprogramming_emc) feature.
+
+
+## Conclusion
+
+Let me repeat it. The current TestObject's getSelectorCollection() method returns XPath string with placeholders retained, like this:
+```
+"selectorCollection": {
+    "BASIC": "//div[@id=\"tab0\"]/div/table/tbody/tr[${Y}]/td[${X}]"
+},
+
+```
+
+I want TestObject's getSelectorCollection() to return XPath string with placeholders are interpolated with values, like this:
+```
+"selectorCollection": {
+    "BASIC": "//div[@id=\"tab0\"]/div/table/tbody/tr[1]/td[3]"
+},
+```
+
+In order to accomplish this, [com.kms.katalon.core.testobject.ObjectRepository](https://github.com/katalon-studio/katalon-studio-testing-framework/blob/master/Include/scripts/groovy/com/kms/katalon/core/testobject/ObjectRepository.java) needs to be slightly modified.
