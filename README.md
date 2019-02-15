@@ -2,7 +2,7 @@
 
 This is a small [Katalon Studio](https://www.katalon.com/) project for demonstration purpose. This project was developed using Katalon Studio version 5.10.1.
 
-## Wht is this
+## What is this
 
 In this project I will report a small problem in the   [com.kms.katalon.core.testobject.ObjectRepository](https://github.com/katalon-studio/katalon-studio-testing-framework/blob/master/Include/scripts/groovy/com/kms/katalon/core/testobject/ObjectRepository.java) class. I will describe the problem, and will show you how I worked around it. And I will propose an idea of improvement for the class.
 
