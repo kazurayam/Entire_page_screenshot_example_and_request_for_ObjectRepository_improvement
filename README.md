@@ -37,7 +37,7 @@ This demo has a few notable points.
 
 ### Problem
 
-Please open [Test Cases/problems/case2_parameterizedTO_reproduced](Scripts/problems/case2_parameterizedTO_reproduced/Script1550193830805.groovy) and execute it. This script tries to take screenshot of [London Stock Exchange: Homepage](https://www.londonstockexchange.com/home/homepage.htm), but will fails. In the Console, you will see the following error message:
+Please open [Test Cases/problems/case2_parameterizedTO_reproduced](Scripts/problems/case2_parameterizedTO_reproduced/Script1550193830805.groovy) and execute it. This script tries to take screenshot of [London Stock Exchange: Homepage](https://www.londonstockexchange.com/home/homepage.htm) as well just like the demo. But will fails. In the Console, you will see the following error message:
 
 ```
 2019-02-15 14:08:33.639 ERROR k.k.c.m.CustomKeywordDelegatingMetaClass -
@@ -46,14 +46,8 @@ Please open [Test Cases/problems/case2_parameterizedTO_reproduced](Scripts/probl
     is invalid: SyntaxError: The expression is not a legal expression.
 ```
 
-The error is occuring at the following line :
-```
-addIgnoredElement(findTestObject('Page_LSE_home/tab0_trY_tdX',
-                                 ['Y':1, 'X':3])).
 
-```
-
-In [Test Cases/problems/case2_parameterizedTO_reproduced](Scripts/problems/case2_parameterizedTO_reproduced/Script1550193830805.groovy) has following code:
+In [Test Cases/problems/case2_parameterizedTO_reproduced](Scripts/problems/case2_parameterizedTO_reproduced/Script1550193830805.groovy) has following code where the error occurs:
 ```
 Options options = new ScreenshotDriver.Options.Builder().
         addIgnoredElement(findTestObject('Page_LSE_home/tab0_trY_tdX', ['Y':1, 'X':3])).
@@ -143,17 +137,17 @@ My custom code ([TestObjectSupport](Keywords/com/kazurayam/ksbackyard/TestObject
 
 Unfortunately the current TestObject returned by ObjectRepository#findTestObject() contains a Selector with placeholders (`${Y}`, `${X}`) retained. This causes the above mentioned error.
 
-### Wondered ...
+### I wondered ...
 
-In the pretty-printed string of TestObject instance, you can find well-processed XPath expressions (`//div[@id=\"tab0\"]/div/table/tbody/tr[1]/td[3]`) in other properties. Only the Selector Colletion retains the placeholder string (`${Y}`, `${X}`). Whey? Is there any reason?
+In the pretty-printed string of TestObject instance, you can find well-processed XPath expressions (`//div[@id=\"tab0\"]/div/table/tbody/tr[1]/td[3]`) in other properties. Only the Selector Colletion retains the placeholder string (`${Y}`, `${X}`). Why? Is there any reason?
 
-I wondered for a few days. And now I suppose, there is no specific reason. Possibly the Selector Collection in a TestObject object is NOT used by the Katalon Studio itself. It is not an important property. Therefore the Katalon programmer did not care about it.
+Have wondered for a couple days, now I suppose there is no specific reason. Possibly the Selector Collection in a TestObject object is NOT used by the Katalon Studio itself. Therefore the Katalon programmer did not care about it.
 
 ### My workaround
 
 I have made a test case to demonstrate how to fix this problem.
 
-Please open [Test Cases/problems/case2_parameterizedTO_improvement](Scripts/problems/case2_parameterizedTO_improvment/Script1550193820302.groovy) and execute it. It should run successfully. It creates a screenshot where Stock Index FT-100 and FT-250 are painted with grey rectangles.
+Please open [Test Cases/problems/case2_parameterizedTO_improvement](Scripts/problems/case2_parameterizedTO_improvment/Script1550193820302.groovy) and execute it. It should run successfully. It creates a screenshot where Stock Index FTSE100 and FTSE250 are painted with grey rectangles.
 ![how_is_it_improved](docs/images/how_is_it_improved.png)
 
 In the execution log, you will find the TestObject has Selector Collection value where placeholders are interpolated with integer values.
