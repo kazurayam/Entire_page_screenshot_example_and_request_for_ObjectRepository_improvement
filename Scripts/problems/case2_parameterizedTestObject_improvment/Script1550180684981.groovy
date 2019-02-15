@@ -2,8 +2,8 @@
 import static com.kms.katalon.core.testobject.ObjectRepository.findTestObject
 
 import java.nio.file.Path
-import java.util.Map;
-import java.util.Map.Entry;
+import java.text.MessageFormat
+import java.util.Map.Entry
 
 import org.apache.commons.lang.text.StrSubstitutor;
 import org.dom4j.Element;
@@ -13,7 +13,9 @@ import com.kazurayam.ksbackyard.ScreenshotDriver
 import com.kazurayam.ksbackyard.ScreenshotDriver.Options
 import com.kazurayam.ksbackyard.ScreenshotDriver.Options.Builder
 import com.kazurayam.materials.MaterialRepository
+import com.kms.katalon.core.configuration.RunConfiguration
 import com.kms.katalon.core.model.FailureHandling as FailureHandling
+import com.kms.katalon.core.constants.StringConstants;
 import com.kms.katalon.core.testobject.ConditionType
 import com.kms.katalon.core.testobject.ObjectRepository
 import com.kms.katalon.core.testobject.SelectorMethod
@@ -36,7 +38,50 @@ import internal.GlobalVariable as GlobalVariable
  * using Groovy MetaProgramming technique.
  */
 def hackObjectRepository() {
-	ObjectRepository.metaClass.static.findWebUIObject = {String testObjectId, Element element, Map<String, Object> variables ->
+	println ">>> hackObjectRepository() was invoked"
+	//
+	//ObjectRepository.metaClass.'static'.invokeMethod = { String name, args ->
+	//	println ">>> ObjectRepository#${name} was invoked"
+	//	def result
+	//	try {
+	//		result = delegate.metaClass.getMetaMethod(name, args).invoke(delegate, args)
+	//	} catch(Exception e) {
+	//		System.out.println("Handling exception for method $name()")
+	//	}
+	//	return result
+	//}
+	//
+	ObjectRepository.metaClass.'static'.findTestObject  = { String testObjectRelativeId, Map<String, Object> variables ->
+		println ">>> ObjectRepository#findTestObject(" + testObjectRelativeId + " was invoked"
+		if (testObjectRelativeId == null) {
+			logger.logWarning(StringConstants.TO_LOG_WARNING_TEST_OBJ_NULL);
+			return null;
+		}
+	
+		String testObjectId = getTestObjectId(testObjectRelativeId);
+		logger.logDebug(MessageFormat.format(StringConstants.TO_LOG_INFO_FINDING_TEST_OBJ_W_ID, testObjectId));
+	
+		// Read test objects cached in temporary in record session.
+		Map<String, TestObject> testObjectsCached = getCapturedTestObjects();
+	
+		//
+		//if (testObjectRelativeId != null && testObjectsCached.containsKey(testObjectRelativeId)) {
+		//	return testObjectsCached.get(testObjectRelativeId);
+		//}
+	
+		File objectFile = new File(RunConfiguration.getProjectDir(), testObjectId + WEBELEMENT_FILE_EXTENSION);
+		if (!objectFile.exists()) {
+			logger.logWarning(
+					MessageFormat.format(StringConstants.TO_LOG_WARNING_TEST_OBJ_DOES_NOT_EXIST, testObjectId));
+			return null;
+		}
+		return readTestObjectFile(testObjectId, objectFile, RunConfiguration.getProjectDir(), variables);
+	}
+	//
+	ObjectRepository.metaClass.'static'.findWebUIObject = { String testObjectId, Element element, Map<String, Object> variables ->
+		
+		println ">>> hacked ObjectRepository#findWebUIObject(" + testObjectId + ",...) was invoked"
+		
 		TestObject testObject = new TestObject(testObjectId);
 
 		// For image
@@ -142,6 +187,8 @@ def hackObjectRepository() {
 }
 hackObjectRepository()
 
+
+
 URL url = new URL('https://www.londonstockexchange.com/home/homepage.htm')
 
 WebUI.openBrowser('')
@@ -166,7 +213,7 @@ WebUI.verifyElementPresent(
 	15, FailureHandling.CONTINUE_ON_FAILURE)
 
 // let's see what is retured by the ObjectRepository#findTestObject() call
-println "findTestObject('Page_LSE_home/tab0_trY_trx',['Y':1,'X':3]'):\n" +
+println ">>> findTestObject('Page_LSE_home/tab0_trY_trx',['Y':1,'X':3]'):\n" +
 	JsonOutput.prettyPrint(JsonOutput.toJson(
 		findTestObject('Page_LSE_home/tab0_trY_tdX', ['Y':1, 'X':3])
 	)
